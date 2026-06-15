@@ -1,0 +1,35 @@
+graph p2p {
+  graph [overlap=false, splines=true, bgcolor="white"];
+  node [shape=box, style="rounded,filled", fillcolor="#e8f0fe", fontname="Arial"];
+  edge [color="#607d8b"];
+  "n1" [label="n1\\nRecursos: popular, r1"];
+  "n2" [label="n2\\nRecursos: r2"];
+  "n3" [label="n3\\nRecursos: r3"];
+  "n4" [label="n4\\nRecursos: r4"];
+  "n5" [label="n5\\nRecursos: r5"];
+  "n6" [label="n6\\nRecursos: r6"];
+  "n7" [label="n7\\nRecursos: popular, r7"];
+  "n8" [label="n8\\nRecursos: r8"];
+  "n9" [label="n9\\nRecursos: r9"];
+  "n10" [label="n10\\nRecursos: r10"];
+  "n11" [label="n11\\nRecursos: r11"];
+  "n12" [label="n12\\nRecursos: r12"];
+  "n1" -- "n2";
+  "n1" -- "n7";
+  "n1" -- "n12";
+  "n2" -- "n3";
+  "n2" -- "n8";
+  "n3" -- "n4";
+  "n3" -- "n9";
+  "n4" -- "n5";
+  "n4" -- "n10";
+  "n5" -- "n6";
+  "n5" -- "n11";
+  "n6" -- "n7";
+  "n6" -- "n12";
+  "n7" -- "n8";
+  "n8" -- "n9";
+  "n9" -- "n10";
+  "n10" -- "n11";
+  "n11" -- "n12";
+}

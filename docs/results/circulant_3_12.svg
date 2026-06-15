@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520" viewBox="0 0 980 520">
+<rect width="100%" height="100%" fill="white"/>
+<text x="490" y="34" text-anchor="middle" font-family="Arial" font-size="22" font-weight="bold">Media de mensagens por algoritmo</text>
+<text x="490" y="58" text-anchor="middle" font-family="Arial" font-size="14">circulant_3_12</text>
+<line x1="85" y1="395.0" x2="945" y2="395.0" stroke="#e0e0e0"/>
+<text x="75" y="400.0" text-anchor="end" font-family="Arial" font-size="12">0.0</text>
+<line x1="85" y1="331.0" x2="945" y2="331.0" stroke="#e0e0e0"/>
+<text x="75" y="336.0" text-anchor="end" font-family="Arial" font-size="12">1.8</text>
+<line x1="85" y1="267.0" x2="945" y2="267.0" stroke="#e0e0e0"/>
+<text x="75" y="272.0" text-anchor="end" font-family="Arial" font-size="12">3.6</text>
+<line x1="85" y1="203.0" x2="945" y2="203.0" stroke="#e0e0e0"/>
+<text x="75" y="208.0" text-anchor="end" font-family="Arial" font-size="12">5.4</text>
+<line x1="85" y1="139.0" x2="945" y2="139.0" stroke="#e0e0e0"/>
+<text x="75" y="144.0" text-anchor="end" font-family="Arial" font-size="12">7.2</text>
+<line x1="85" y1="75.0" x2="945" y2="75.0" stroke="#e0e0e0"/>
+<text x="75" y="80.0" text-anchor="end" font-family="Arial" font-size="12">8.9</text>
+<rect x="137.5" y="201.7" width="110.0" height="193.3" fill="#1565c0" rx="4"/>
+<text x="192.5" y="193.7" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold">5.40</text>
+<text x="192.5" y="417" text-anchor="middle" font-family="Arial" font-size="12">flooding</text>
+<text x="192.5" y="437" text-anchor="middle" font-family="Arial" font-size="11" fill="#555">sucesso: 100.0%</text>
+<rect x="352.5" y="298.4" width="110.0" height="96.6" fill="#42a5f5" rx="4"/>
+<text x="407.5" y="290.4" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold">2.70</text>
+<text x="407.5" y="417" text-anchor="middle" font-family="Arial" font-size="12">informed_flooding</text>
+<text x="407.5" y="437" text-anchor="middle" font-family="Arial" font-size="11" fill="#555">sucesso: 100.0%</text>
+<rect x="567.5" y="75.0" width="110.0" height="320.0" fill="#ef6c00" rx="4"/>
+<text x="622.5" y="70.0" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold">8.94</text>
+<text x="622.5" y="417" text-anchor="middle" font-family="Arial" font-size="12">random_walk</text>
+<text x="622.5" y="437" text-anchor="middle" font-family="Arial" font-size="11" fill="#555">sucesso: 70.1%</text>
+<rect x="782.5" y="186.2" width="110.0" height="208.8" fill="#ffb74d" rx="4"/>
+<text x="837.5" y="178.2" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold">5.83</text>
+<text x="837.5" y="417" text-anchor="middle" font-family="Arial" font-size="12">informed_random_walk</text>
+<text x="837.5" y="437" text-anchor="middle" font-family="Arial" font-size="11" fill="#555">sucesso: 80.7%</text>
+<line x1="85" y1="395" x2="945" y2="395" stroke="#333"/>
+<text x="20" y="235.0" text-anchor="middle" font-family="Arial" font-size="13" transform="rotate(-90 20 235.0)">Mensagens</text>
+<text x="490" y="496" text-anchor="middle" font-family="Arial" font-size="11" fill="#555">Mensagens = requisicoes entre nos + respostas ate o iniciador</text>
+</svg>

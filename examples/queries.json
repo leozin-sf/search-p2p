@@ -1,0 +1,13 @@
+[
+  {"node_id": "n1", "resource_id": "r7", "ttl": 12},
+  {"node_id": "n4", "resource_id": "r10", "ttl": 12},
+  {"node_id": "n8", "resource_id": "r2", "ttl": 12},
+  {"node_id": "n11", "resource_id": "r5", "ttl": 12},
+  {"node_id": "n2", "resource_id": "r9", "ttl": 12},
+  {"node_id": "n1", "resource_id": "r7", "ttl": 12},
+  {"node_id": "n4", "resource_id": "r10", "ttl": 12},
+  {"node_id": "n8", "resource_id": "r2", "ttl": 12},
+  {"node_id": "n11", "resource_id": "r5", "ttl": 12},
+  {"node_id": "n2", "resource_id": "r9", "ttl": 12}
+]
+

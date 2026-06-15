@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Algoritmos de Busca em Sistemas P2P</title>
+  <style>
+    :root {
+      --blue: #0d47a1;
+      --light-blue: #e8f0fe;
+      --orange: #ef6c00;
+      --ink: #17212b;
+      --muted: #52606d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #111827;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
+    .slide {
+      display: none;
+      width: min(100vw, 1280px);
+      height: min(100vh, 720px);
+      margin: auto;
+      padding: 54px 72px;
+      background: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .slide.active { display: block; }
+    .slide::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 10px;
+      background: linear-gradient(90deg, var(--blue), #42a5f5, var(--orange));
+    }
+    h1 {
+      margin: 80px 0 24px;
+      color: var(--blue);
+      font-size: 58px;
+      line-height: 1.08;
+    }
+    h2 {
+      margin: 0 0 30px;
+      color: var(--blue);
+      font-size: 38px;
+    }
+    h3 { color: var(--orange); font-size: 24px; }
+    p, li { font-size: 24px; line-height: 1.42; }
+    li { margin: 11px 0; }
+    code {
+      color: #a33d00;
+      background: #fff3e0;
+      border-radius: 5px;
+      padding: 2px 7px;
+    }
+    pre {
+      padding: 20px 24px;
+      border-left: 6px solid var(--orange);
+      background: #f6f8fa;
+      font-size: 20px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 20px;
+    }
+    th {
+      color: white;
+      background: var(--blue);
+    }
+    th, td {
+      padding: 11px 14px;
+      border: 1px solid #cbd5e1;
+      text-align: left;
+    }
+    tr:nth-child(even) td { background: #f4f7fb; }
+    .subtitle { color: var(--muted); font-size: 30px; }
+    .tag {
+      display: inline-block;
+      margin: 8px 8px 0 0;
+      padding: 10px 16px;
+      border-radius: 20px;
+      color: var(--blue);
+      background: var(--light-blue);
+      font-size: 21px;
+      font-weight: bold;
+    }
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 38px;
+      align-items: start;
+    }
+    .card {
+      padding: 20px 25px;
+      border-radius: 12px;
+      background: #f5f8fc;
+      border-top: 6px solid var(--blue);
+    }
+    .card.orange { border-color: var(--orange); }
+    .card p, .card li { font-size: 20px; }
+    .chart {
+      display: block;
+      width: 92%;
+      max-height: 545px;
+      margin: -15px auto 0;
+    }
+    .small { font-size: 18px; color: var(--muted); }
+    .warning {
+      padding: 16px 20px;
+      background: #fff3cd;
+      border-left: 6px solid #e0a800;
+      font-size: 21px;
+    }
+    .counter {
+      position: fixed;
+      right: 22px;
+      bottom: 18px;
+      z-index: 10;
+      color: white;
+      font-size: 14px;
+    }
+    @media print {
+      body { overflow: visible; background: white; }
+      .slide {
+        display: block !important;
+        width: 13.333in;
+        height: 7.5in;
+        page-break-after: always;
+      }
+      .counter { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <section class="slide active">
+    <h1>Implementacao de Algoritmos de Busca em Sistemas P2P</h1>
+    <p class="subtitle">Flooding, passeio aleatorio, TTL e busca informada</p>
+    <div>
+      <span class="tag">Computacao Distribuida</span>
+      <span class="tag">Trabalho 7</span>
+      <span class="tag">Python</span>
+    </div>
+  </section>
+
+  <section class="slide">
+    <h2>Equipe</h2>
+    <ul style="margin-top: 42px">
+      <li><strong>Leonardo Silva</strong> - 2319973</li>
+      <li><strong>Ravi Freitas</strong> - 2316154</li>
+      <li><strong>Luca Solon</strong> - 1910486</li>
+      <li><strong>Luiz Henrique</strong> - 2520528</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <h2>Objetivo e funcionalidades</h2>
+    <div class="columns">
+      <div class="card">
+        <h3>Entrada e modelo</h3>
+        <ul>
+          <li>Leitura de redes em JSON ou YAML</li>
+          <li>Grafo P2P nao estruturado e nao direcionado</li>
+          <li>Recursos locais e cache por no</li>
+          <li>Exportacao da topologia em DOT</li>
+        </ul>
+      </div>
+      <div class="card orange">
+        <h3>Execucao e analise</h3>
+        <ul>
+          <li>Quatro algoritmos de busca</li>
+          <li>TTL configuravel por operacao</li>
+          <li>Mensagens e nos envolvidos</li>
+          <li>Shell interativo e benchmark reproduzivel</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <h2>Validacao da rede</h2>
+    <p>O programa rejeita a configuracao antes de permitir qualquer busca.</p>
+    <div class="columns">
+      <ul>
+        <li>Rede particionada</li>
+        <li>Grau abaixo de <code>min_neighbors</code></li>
+        <li>Grau acima de <code>max_neighbors</code></li>
+        <li>No sem recurso</li>
+      </ul>
+      <ul>
+        <li>Aresta de um no para ele mesmo</li>
+        <li>Arestas duplicadas</li>
+        <li>Nos inexistentes em arestas</li>
+        <li>Quantidade ou tipos invalidos</li>
+      </ul>
+    </div>
+    <pre>python3 -m p2p_search validate examples/ring_12.json</pre>
+  </section>
+
+  <section class="slide">
+    <h2>Algoritmos implementados</h2>
+    <table>
+      <thead>
+        <tr><th>Algoritmo</th><th>Encaminhamento</th><th>Usa cache?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>flooding</td><td>Todos os vizinhos, com supressao de reenvio</td><td>Nao</td></tr>
+        <tr><td>informed_flooding</td><td>Flooding ate um no conhecer a localizacao</td><td>Sim</td></tr>
+        <tr><td>random_walk</td><td>Um vizinho aleatorio por salto</td><td>Nao</td></tr>
+        <tr><td>informed_random_walk</td><td>Passeio ate recurso ou entrada em cache</td><td>Sim</td></tr>
+      </tbody>
+    </table>
+    <p class="small">
+      O passeio pode revisitar nos. O cache e atualizado no caminho da resposta,
+      mesmo quando a busca executada nao o consulta.
+    </p>
+  </section>
+
+  <section class="slide">
+    <h2>Metricas e metodologia</h2>
+    <div class="columns">
+      <div>
+        <h3>Contagem</h3>
+        <p><strong>Mensagens totais</strong> = consultas encaminhadas + respostas ate o iniciador.</p>
+        <p><strong>Nos envolvidos</strong> = IDs distintos que processaram a busca.</p>
+        <p>O TTL limita apenas os saltos da consulta.</p>
+      </div>
+      <div>
+        <h3>Experimentos</h3>
+        <ul>
+          <li>3 topologias com 12 nos</li>
+          <li>Graus 2, 3 e 4</li>
+          <li>10 consultas por rodada</li>
+          <li>5 consultas repetidas para aquecer cache</li>
+          <li>100 rodadas e semente 2026</li>
+          <li>1.000 buscas por algoritmo/topologia</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <h2>Resultados: anel de grau 2</h2>
+    <img class="chart" src="results/ring_12.svg" alt="Grafico da topologia em anel">
+  </section>
+
+  <section class="slide">
+    <h2>Resultados: circulante de grau 3</h2>
+    <img class="chart" src="results/circulant_3_12.svg" alt="Grafico da topologia de grau 3">
+  </section>
+
+  <section class="slide">
+    <h2>Resultados: circulante de grau 4</h2>
+    <img class="chart" src="results/circulant_4_12.svg" alt="Grafico da topologia de grau 4">
+  </section>
+
+  <section class="slide">
+    <h2>Analise comparativa</h2>
+    <table>
+      <thead>
+        <tr><th>Topologia</th><th>Melhor media</th><th>Maior sucesso</th><th>Observacao</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Grau 2</td><td>Informed flooding: 8,70</td><td>Flooding: 100%</td><td>Random walk sofre com distancia</td></tr>
+        <tr><td>Grau 3</td><td>Informed flooding: 2,70</td><td>Flooding: 100%</td><td>Melhor equilibrio observado</td></tr>
+        <tr><td>Grau 4</td><td>Informed random: 10,18*</td><td>Flooding: 100%</td><td>Flooding gera muitas duplicatas</td></tr>
+      </tbody>
+    </table>
+    <p class="small">* Menor media global, mas com 57,3% de sucesso. Informed flooding teve 15,50 e 100%.</p>
+    <ul>
+      <li>O cache reduziu mensagens e elevou o sucesso das variantes aleatorias.</li>
+      <li>Mais vizinhos reduzem distancias, mas podem aumentar o trafego de flooding.</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <h2>Demonstracao ao vivo</h2>
+    <pre>python3 -m p2p_search shell examples/ring_12.json --seed 2026
+
+search n1 r7 6 flooding
+cache n1
+search n1 r7 6 informed_flooding</pre>
+    <div class="columns">
+      <div class="card">
+        <h3>Primeira busca</h3>
+        <p>18 mensagens, 12 nos envolvidos e resposta de <code>n7</code>.</p>
+      </div>
+      <div class="card orange">
+        <h3>Busca repetida</h3>
+        <p>0 mensagens, 1 no envolvido e resposta pelo cache de <code>n1</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <h2>Conclusoes</h2>
+    <ul>
+      <li>Flooding apresentou alcance confiavel, com custo sensivel a densidade e ciclos.</li>
+      <li>Random walk economiza fan-out, mas depende fortemente do TTL e da topologia.</li>
+      <li>Cache local reduz o custo de consultas repetidas e melhora buscas aleatorias.</li>
+      <li>Nao existe algoritmo universalmente melhor: custo e sucesso devem ser avaliados juntos.</li>
+    </ul>
+    <p class="subtitle" style="margin-top: 50px">Codigo, testes, CSVs e graficos sao reproduziveis.</p>
+  </section>
+
+  <div class="counter" id="counter"></div>
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    let current = 0;
+
+    function show(index) {
+      current = Math.max(0, Math.min(index, slides.length - 1));
+      slides.forEach((slide, position) => {
+        slide.classList.toggle("active", position === current);
+      });
+      document.getElementById("counter").textContent =
+        `${current + 1} / ${slides.length}`;
+      history.replaceState(null, "", `#${current + 1}`);
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (["ArrowRight", "PageDown", " "].includes(event.key)) show(current + 1);
+      if (["ArrowLeft", "PageUp"].includes(event.key)) show(current - 1);
+      if (event.key === "Home") show(0);
+      if (event.key === "End") show(slides.length - 1);
+    });
+
+    const requested = Number.parseInt(location.hash.slice(1), 10);
+    show(Number.isNaN(requested) ? 0 : requested - 1);
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+topology,algorithm,executions,successes,success_rate,average_messages,median_messages,p95_messages,average_nodes
+circulant_3_12,flooding,1000,1000,1.0,5.4,4.0,11.0,4.8
+circulant_3_12,informed_flooding,1000,1000,1.0,2.7,2.0,11.0,2.9
+circulant_3_12,random_walk,1000,701,0.701,8.94,10.0,20.0,4.703
+circulant_3_12,informed_random_walk,1000,807,0.807,5.834,2.0,18.0,3.417

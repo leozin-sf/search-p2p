@@ -9,13 +9,17 @@
 | Luca Solon | 1910486 |
 | Luiz Henrique | 2520528 |
 
-Simulador de uma rede P2P nao estruturada com validacao de topologia, TTL,
-cache distribuido e os quatro algoritmos pedidos no enunciado:
+Simulador de uma rede P2P nao estruturada a partir de uma topologia. Depois de
+carregar a topologia, voce informa o node id inicial, o recurso, o TTL e o
+algoritmo de busca. O projeto tambem valida a topologia, mantem cache
+distribuido e implementa os quatro algoritmos pedidos no enunciado:
 
 - `flooding`
-- `informed_flooding`
-- `random_walk`
-- `informed_random_walk`
+- `informed flooding`
+- `random walk`
+- `informed random walk`
+
+Os nomes tambem sao aceitos com `_`, por exemplo `informed_flooding`.
 
 O projeto usa apenas a biblioteca padrao do Python 3.10+. PyYAML e Graphviz
 sao opcionais.
@@ -28,11 +32,22 @@ Validar uma topologia:
 python3 -m p2p_search validate examples/ring_12.json
 ```
 
-Executar uma busca:
+Executar uma busca no simulador a partir de uma topologia:
+
+```bash
+python3 -m p2p_search simulate \
+  examples/ring_12.json \
+  --node-id n1 \
+  --resource-id r7 \
+  --ttl 6 \
+  --algorithm "informed flooding"
+```
+
+Tambem e possivel chamar o alias `simulator` ou usar o atalho direto `search`:
 
 ```bash
 python3 -m p2p_search search \
-  examples/ring_12.json n1 r7 6 flooding
+  examples/ring_12.json n1 r7 6 "random walk"
 ```
 
 Abrir a demonstracao interativa, na qual os caches persistem entre buscas:
@@ -46,7 +61,7 @@ Dentro do shell:
 ```text
 search n1 r7 6 flooding
 cache n1
-search n1 r7 6 informed_flooding
+search n1 r7 6 informed flooding
 clear-cache
 nodes
 quit
@@ -170,7 +185,7 @@ dot -Tsvg docs/results/topology.dot -o docs/results/topology.svg
 python3 -m unittest discover -v
 ```
 
-A suite possui 25 testes cobrindo configuracao, conectividade, graus, recursos,
+A suite possui 29 testes cobrindo configuracao, conectividade, graus, recursos,
 TTL, contagem de mensagens, cache, passeio aleatorio e benchmark.
 
 ## Entrega

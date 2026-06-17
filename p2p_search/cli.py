@@ -16,7 +16,8 @@ from .benchmark import (
 )
 from .config import ConfigError, load_config
 from .network import P2PNetwork
-from .search import ALGORITHMS, SearchEngine, SearchResult
+from .search import ALGORITHMS, SearchEngine, SearchResult, format_algorithm_options
+from .simulator import SimulationResult, TopologySimulator
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -31,11 +32,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     validate.add_argument("config", type=Path)
 
-    search = subparsers.add_parser("search", help="Executa uma busca.")
+    search = subparsers.add_parser("search", help="Executa uma busca direta.")
     search.add_argument("config", type=Path)
     _add_search_arguments(search)
     search.add_argument("--seed", type=int, default=0)
     search.add_argument("--json", action="store_true", dest="as_json")
+
+    simulate = subparsers.add_parser(
+        "simulate",
+        aliases=["simulator"],
+        help="Carrega uma topologia P2P e executa uma busca no simulador.",
+    )
+    simulate.add_argument("topology", type=Path)
+    simulate.add_argument("--node-id", "--node", dest="node_id")
+    simulate.add_argument("--resource-id", "--resource", dest="resource_id")
+    simulate.add_argument("--ttl", type=int)
+    simulate.add_argument("--algorithm", "--algo", dest="algo")
+    simulate.add_argument("--seed", type=int, default=0)
+    simulate.add_argument("--json", action="store_true", dest="as_json")
 
     shell = subparsers.add_parser(
         "shell", help="Abre uma sessao interativa com cache persistente."
@@ -57,8 +71,8 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark.add_argument(
         "--algorithms",
         nargs="+",
-        choices=ALGORITHMS,
         default=list(ALGORITHMS),
+        help=f"Opcoes: {format_algorithm_options()}",
     )
     benchmark.add_argument("--runs", type=int, default=30)
     benchmark.add_argument("--seed", type=int, default=0)
@@ -76,6 +90,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _validate(args.config)
         if args.command == "search":
             return _search(args)
+        if args.command in {"simulate", "simulator"}:
+            return _simulate(args)
         if args.command == "shell":
             return _shell(args.config, args.seed)
         if args.command == "graph":
@@ -123,6 +139,38 @@ def _search(args: argparse.Namespace) -> int:
     return 0 if result.found else 3
 
 
+def _simulate(args: argparse.Namespace) -> int:
+    simulator = TopologySimulator.from_topology_file(args.topology, seed=args.seed)
+    node_id, resource_id, ttl, algorithm = _read_simulation_request(args)
+    result = simulator.search(node_id, resource_id, ttl, algorithm)
+    if args.as_json:
+        print(json.dumps(result.to_dict(), ensure_ascii=False, indent=2))
+    else:
+        print(_format_simulation_result(result))
+    return 0 if result.search.found else 3
+
+
+def _read_simulation_request(
+    args: argparse.Namespace,
+) -> tuple[str, str, int, str]:
+    node_id = args.node_id or _prompt("Node ID: ")
+    resource_id = args.resource_id or _prompt("Recurso: ")
+    ttl = args.ttl
+    if ttl is None:
+        ttl = int(_prompt("TTL: "))
+    algorithm = args.algo or _prompt(
+        f"Algoritmo ({format_algorithm_options()}): "
+    )
+    return node_id, resource_id, ttl, algorithm
+
+
+def _prompt(label: str) -> str:
+    try:
+        return input(label).strip()
+    except EOFError as exc:
+        raise ValueError("Informe node id, recurso, ttl e algoritmo.") from exc
+
+
 def _shell(config_path: Path, seed: int) -> int:
     network = _load_network(config_path)
     engine = SearchEngine(network, seed=seed)
@@ -160,11 +208,16 @@ def _shell(config_path: Path, seed: int) -> int:
             print("Caches limpos.")
             continue
         if command == "search":
-            if len(parts) != 5:
+            if len(parts) < 5:
                 print("Uso: search NODE RESOURCE TTL ALGORITHM")
                 continue
             try:
-                result = engine.search(parts[1], parts[2], int(parts[3]), parts[4])
+                result = engine.search(
+                    parts[1],
+                    parts[2],
+                    int(parts[3]),
+                    " ".join(parts[4:]),
+                )
                 print(_format_result(result))
             except ValueError as exc:
                 print(f"Erro: {exc}")
@@ -228,6 +281,26 @@ def _format_result(result: SearchResult) -> str:
     return "\n".join(lines)
 
 
+def _format_simulation_result(result: SimulationResult) -> str:
+    summary = result.topology_summary
+    lines = [
+        f"Topologia: {result.topology}",
+        (
+            "Nos/arestas/recursos: "
+            f"{summary['nodes']} / {summary['edges']} / {summary['resources']}"
+        ),
+        (
+            "Grau: "
+            f"min={summary['min_degree']}, "
+            f"max={summary['max_degree']}, "
+            f"media={summary['average_degree']:.2f}"
+        ),
+        "",
+        _format_result(result.search),
+    ]
+    return "\n".join(lines)
+
+
 def _print_nodes(network: P2PNetwork) -> None:
     for node_id in network.config.node_ids:
         resources = ", ".join(sorted(network.nodes[node_id].resources))
@@ -257,7 +330,7 @@ def _shell_help() -> str:
             "clear-cache                         limpa todos os caches",
             "help                                mostra esta ajuda",
             "quit                                encerra",
-            f"Algoritmos: {', '.join(ALGORITHMS)}",
+            f"Algoritmos: {format_algorithm_options()}",
         ]
     )
 
@@ -266,9 +339,12 @@ def _add_search_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("node_id")
     parser.add_argument("resource_id")
     parser.add_argument("ttl", type=int)
-    parser.add_argument("algo", choices=ALGORITHMS)
+    parser.add_argument(
+        "algo",
+        metavar="algorithm",
+        help=f"Opcoes: {format_algorithm_options()}",
+    )
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="640">
+<rect width="600" height="640" fill="#f8f9fa"/>
+<text x="300" y="30" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#333">Ring 12</text>
+<line x1="300.0" y1="70.0" x2="415.0" y2="100.8" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="415.0" y1="100.8" x2="499.2" y2="185.0" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="499.2" y1="185.0" x2="530.0" y2="300.0" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="530.0" y1="300.0" x2="499.2" y2="415.0" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="499.2" y1="415.0" x2="415.0" y2="499.2" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="415.0" y1="499.2" x2="300.0" y2="530.0" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="300.0" y1="530.0" x2="185.0" y2="499.2" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="185.0" y1="499.2" x2="100.8" y2="415.0" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="100.8" y1="415.0" x2="70.0" y2="300.0" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="70.0" y1="300.0" x2="100.8" y2="185.0" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="100.8" y1="185.0" x2="185.0" y2="100.8" stroke="#adb5bd" stroke-width="1.5"/>
+<line x1="185.0" y1="100.8" x2="300.0" y2="70.0" stroke="#adb5bd" stroke-width="1.5"/>
+<circle cx="300.0" cy="70.0" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="300.0" y="70.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n1</text>
+<text x="300.0" y="38.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r1,popular</text>
+<circle cx="415.0" cy="100.8" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="415.0" y="100.8" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n2</text>
+<text x="431.0" y="73.1" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r2</text>
+<circle cx="499.2" cy="185.0" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="499.2" y="185.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n3</text>
+<text x="526.9" y="169.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r3</text>
+<circle cx="530.0" cy="300.0" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="530.0" y="300.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n4</text>
+<text x="562.0" y="300.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r4</text>
+<circle cx="499.2" cy="415.0" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="499.2" y="415.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n5</text>
+<text x="526.9" y="431.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r5</text>
+<circle cx="415.0" cy="499.2" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="415.0" y="499.2" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n6</text>
+<text x="431.0" y="526.9" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r6</text>
+<circle cx="300.0" cy="530.0" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="300.0" y="530.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n7</text>
+<text x="300.0" y="562.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r7,popular</text>
+<circle cx="185.0" cy="499.2" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="185.0" y="499.2" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n8</text>
+<text x="169.0" y="526.9" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r8</text>
+<circle cx="100.8" cy="415.0" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="100.8" y="415.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n9</text>
+<text x="73.1" y="431.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r9</text>
+<circle cx="70.0" cy="300.0" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="70.0" y="300.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n10</text>
+<text x="38.0" y="300.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r10</text>
+<circle cx="100.8" cy="185.0" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="100.8" y="185.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n11</text>
+<text x="73.1" y="169.0" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r11</text>
+<circle cx="185.0" cy="100.8" r="22" fill="#4361ee" stroke="white" stroke-width="2"/>
+<text x="185.0" y="100.8" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="white">n12</text>
+<text x="169.0" y="73.1" dy="0.35em" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#555">r12</text>
+<circle cx="30" cy="610" r="8" fill="#4361ee"/>
+<text x="44" y="614" font-family="sans-serif" font-size="11" fill="#333">No com recurso</text>
+<text x="300" y="630" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#888">Nos: 12  |  Arestas: 12</text>
+</svg>

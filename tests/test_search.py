@@ -4,7 +4,7 @@ import unittest
 
 from p2p_search.config import parse_config
 from p2p_search.network import P2PNetwork
-from p2p_search.search import SearchEngine, normalize_algorithm
+from p2p_search.search import SearchEngine
 
 
 def chain_network() -> P2PNetwork:
@@ -87,19 +87,6 @@ class SearchTests(unittest.TestCase):
         self.assertEqual(result.query_messages, 2)
         self.assertEqual(result.response_messages, 2)
         self.assertEqual(result.total_messages, 4)
-
-    def test_accepts_readable_algorithm_names(self) -> None:
-        self.assertEqual(normalize_algorithm("informed flooding"), "informed_flooding")
-        self.assertEqual(normalize_algorithm("random-walk"), "random_walk")
-        self.assertEqual(
-            normalize_algorithm("informed random walk"),
-            "informed_random_walk",
-        )
-        result = SearchEngine(chain_network(), seed=0).search(
-            "n1", "r3", 2, "random walk"
-        )
-        self.assertTrue(result.found)
-        self.assertEqual(result.algorithm, "random_walk")
 
     def test_random_walk_can_revisit_nodes(self) -> None:
         result = SearchEngine(chain_network(), seed=1).search(

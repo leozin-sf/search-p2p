@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import asdict, dataclass
-from typing import Literal, cast
+from typing import Literal
 
 from .config import _natural_key
 from .network import P2PNetwork
@@ -20,31 +20,6 @@ ALGORITHMS: tuple[Algorithm, ...] = (
     "random_walk",
     "informed_random_walk",
 )
-
-ALGORITHM_LABELS: dict[Algorithm, str] = {
-    "flooding": "flooding",
-    "informed_flooding": "informed flooding",
-    "random_walk": "random walk",
-    "informed_random_walk": "informed random walk",
-}
-
-
-def format_algorithm_options() -> str:
-    return ", ".join(ALGORITHM_LABELS[algorithm] for algorithm in ALGORITHMS)
-
-
-def normalize_algorithm(algorithm: str) -> Algorithm:
-    if not isinstance(algorithm, str):
-        raise ValueError(
-            f"Algoritmo invalido: {algorithm}. Opcoes: {format_algorithm_options()}."
-        )
-    normalized = algorithm.strip().lower().replace("-", "_").replace(" ", "_")
-    normalized = "_".join(part for part in normalized.split("_") if part)
-    if normalized in ALGORITHMS:
-        return cast(Algorithm, normalized)
-    raise ValueError(
-        f"Algoritmo invalido: {algorithm}. Opcoes: {format_algorithm_options()}."
-    )
 
 
 @dataclass(frozen=True)
@@ -84,8 +59,7 @@ class SearchEngine:
         ttl: int,
         algorithm: str,
     ) -> SearchResult:
-        self._validate_request(node_id, resource_id, ttl)
-        algorithm = normalize_algorithm(algorithm)
+        self._validate_request(node_id, resource_id, ttl, algorithm)
         informed = algorithm.startswith("informed_")
 
         if algorithm in {"flooding", "informed_flooding"}:
@@ -323,10 +297,16 @@ class SearchEngine:
             reason=reason,
         )
 
-    def _validate_request(self, node_id: str, resource_id: str, ttl: int) -> None:
+    def _validate_request(
+        self, node_id: str, resource_id: str, ttl: int, algorithm: str
+    ) -> None:
         if node_id not in self.network.nodes:
             raise ValueError(f"No inicial inexistente: {node_id}.")
         if not isinstance(resource_id, str) or not resource_id.strip():
             raise ValueError("resource_id deve ser uma string nao vazia.")
         if not isinstance(ttl, int) or isinstance(ttl, bool) or ttl < 0:
             raise ValueError("ttl deve ser um inteiro maior ou igual a zero.")
+        if algorithm not in ALGORITHMS:
+            raise ValueError(
+                f"Algoritmo invalido: {algorithm}. Opcoes: {', '.join(ALGORITHMS)}."
+            )

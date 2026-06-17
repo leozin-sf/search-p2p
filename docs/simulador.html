@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<title>Simulador P2P — Busca em Rede</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;padding:20px}
+h1{text-align:center;color:#58a6ff;font-size:1.4rem;margin-bottom:18px;letter-spacing:.5px}
+
+.layout{display:flex;gap:16px;max-width:1200px;margin:0 auto}
+.left{width:270px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+.center{flex:1;display:flex;flex-direction:column;gap:10px}
+.right{width:300px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+
+.card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px}
+.card h3{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin-bottom:10px;border-bottom:1px solid #21262d;padding-bottom:6px}
+
+label{font-size:.78rem;color:#8b949e;display:block;margin-bottom:3px}
+select,input{width:100%;padding:6px 9px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.85rem;margin-bottom:8px}
+select:focus,input:focus{outline:none;border-color:#58a6ff}
+
+.btn{width:100%;padding:8px;border:none;border-radius:7px;cursor:pointer;font-size:.85rem;font-weight:600;margin-bottom:6px;transition:.15s}
+.btn-blue{background:#1f6feb;color:#fff}.btn-blue:hover{background:#388bfd}
+.btn-purple{background:#6e40c9;color:#fff}.btn-purple:hover{background:#8957e5}
+.btn-gray{background:#21262d;color:#c9d1d9;border:1px solid #30363d}.btn-gray:hover{background:#30363d}
+
+.ttl-wrap{margin-bottom:8px}
+.ttl-row{display:flex;justify-content:space-between;font-size:.78rem;color:#8b949e;margin-bottom:3px}
+.ttl-track{height:8px;background:#21262d;border-radius:4px;overflow:hidden}
+.ttl-fill{height:100%;border-radius:4px;transition:width .4s,background .4s;background:#1f6feb}
+
+#svg-wrap{background:#0d1117;border-radius:10px;border:1px solid #30363d;overflow:hidden}
+#svg-graph{width:100%;height:420px;display:block}
+
+/* terminal-style report */
+.terminal{background:#0d1117;border:1px solid #30363d;border-radius:8px;font-family:'Courier New',monospace;font-size:.78rem;padding:12px;height:100%;overflow-y:auto;line-height:1.7}
+.t-sep{color:#444;user-select:none}
+.t-title{color:#58a6ff;font-weight:bold}
+.t-label{color:#8b949e}
+.t-value{color:#c9d1d9}
+.t-ok{color:#3fb950;font-weight:bold}
+.t-fail{color:#f85149;font-weight:bold}
+.t-path{color:#d2a8ff}
+.t-cache-hit{color:#3fb950}
+.t-cache-miss{color:#8b949e}
+.t-step{color:#ffa657}
+.t-msg{color:#79c0ff}
+
+/* log */
+.log-wrap{height:130px;overflow-y:auto;font-family:'Courier New',monospace;font-size:.75rem;background:#0d1117;border-radius:6px;border:1px solid #21262d;padding:8px;line-height:1.6}
+.log-wrap p{border-bottom:1px solid #161b22;padding:1px 0}
+</style>
+</head>
+<body>
+<h1>🔍 Simulador de Busca em Rede P2P</h1>
+<div class="layout">
+
+<!-- LEFT: controls -->
+<div class="left">
+  <div class="card">
+    <h3>Configuração</h3>
+    <label>Topologia</label>
+    <select id="selTopo">
+      <option value="ring">Anel (grau 2, 12 nós)</option>
+      <option value="circ3">Circulante (grau 3, 12 nós)</option>
+      <option value="circ4" selected>Circulante (grau 4, 12 nós)</option>
+    </select>
+    <label>Algoritmo</label>
+    <select id="selAlgo">
+      <option value="flooding">1 - flooding</option>
+      <option value="informed_flooding">2 - informed_flooding</option>
+      <option value="random_walk" selected>3 - random_walk</option>
+      <option value="informed_random_walk">4 - informed_random_walk</option>
+    </select>
+    <label>Nó inicial</label>
+    <select id="selOrigin"></select>
+    <label>Recurso buscado</label>
+    <select id="selResource"></select>
+    <label>TTL</label>
+    <input type="number" id="inpTTL" value="6" min="1" max="20"/>
+    <label>Seed (opcional)</label>
+    <input type="number" id="inpSeed" placeholder="deixe vazio = aleatório"/>
+  </div>
+  <div class="card">
+    <h3>Controles</h3>
+    <div class="ttl-wrap">
+      <div class="ttl-row"><span>TTL restante</span><span id="ttlLabel">6 / 6</span></div>
+      <div class="ttl-track"><div class="ttl-fill" id="ttlFill" style="width:100%"></div></div>
+    </div>
+    <button class="btn btn-blue" id="btnRun">▶ Executar (animado)</button>
+    <button class="btn btn-purple" id="btnStep">⏭ Próximo passo</button>
+    <button class="btn btn-gray" id="btnReset">↺ Nova busca</button>
+    <div id="statusBox" style="font-size:.75rem;color:#8b949e;margin-top:6px;min-height:32px;line-height:1.5"></div>
+  </div>
+</div>
+
+<!-- CENTER: graph + log -->
+<div class="center">
+  <div id="svg-wrap" class="card" style="padding:0">
+    <svg id="svg-graph" viewBox="0 0 500 420"></svg>
+  </div>
+  <div class="card" style="padding:10px">
+    <h3>Log de execução</h3>
+    <div class="log-wrap" id="logBox"></div>
+  </div>
+</div>
+
+<!-- RIGHT: terminal report -->
+<div class="right">
+  <div class="card" style="flex:1;padding:12px;display:flex;flex-direction:column">
+    <h3>Relatório da Busca</h3>
+    <div class="terminal" id="report">
+      <span class="t-sep">══════════════════════════════</span><br>
+      <span class="t-title">Busca em Rede P2P</span><br>
+      <span class="t-sep">══════════════════════════════</span><br>
+      <br>
+      <span class="t-label">Configure e execute uma busca</span><br>
+      <span class="t-label">para ver o relatório aqui.</span><br>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ─── Topologias ───────────────────────────────────────────────────────────────
+const TOPOS = {
+  ring:{num_nodes:12,resources:{n1:["r1","popular"],n2:["r2"],n3:["r3"],n4:["r4"],n5:["r5"],n6:["r6"],n7:["r7","popular"],n8:["r8"],n9:["r9"],n10:["r10"],n11:["r11"],n12:["r12"]},edges:[["n1","n2"],["n2","n3"],["n3","n4"],["n4","n5"],["n5","n6"],["n6","n7"],["n7","n8"],["n8","n9"],["n9","n10"],["n10","n11"],["n11","n12"],["n12","n1"]]},
+  circ3:{num_nodes:12,resources:{n1:["r1","popular"],n2:["r2"],n3:["r3"],n4:["r4"],n5:["r5"],n6:["r6"],n7:["r7","popular"],n8:["r8"],n9:["r9"],n10:["r10"],n11:["r11"],n12:["r12"]},edges:[["n1","n2"],["n2","n3"],["n3","n4"],["n4","n5"],["n5","n6"],["n6","n7"],["n7","n8"],["n8","n9"],["n9","n10"],["n10","n11"],["n11","n12"],["n12","n1"],["n1","n7"],["n2","n8"],["n3","n9"],["n4","n10"],["n5","n11"],["n6","n12"]]},
+  circ4:{num_nodes:12,resources:{n1:["r1","popular"],n2:["r2"],n3:["r3"],n4:["r4"],n5:["r5"],n6:["r6"],n7:["r7","popular"],n8:["r8"],n9:["r9"],n10:["r10"],n11:["r11"],n12:["r12"]},edges:[["n1","n2"],["n2","n3"],["n3","n4"],["n4","n5"],["n5","n6"],["n6","n7"],["n7","n8"],["n8","n9"],["n9","n10"],["n10","n11"],["n11","n12"],["n12","n1"],["n1","n3"],["n2","n4"],["n3","n5"],["n4","n6"],["n5","n7"],["n6","n8"],["n7","n9"],["n8","n10"],["n9","n11"],["n10","n12"],["n11","n1"],["n12","n2"]]}
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function nk(s){return s.replace(/\d+/g,n=>n.padStart(6,'0'));}
+function buildAdj(topo){const a={};Object.keys(topo.resources).forEach(n=>a[n]=new Set());topo.edges.forEach(([x,y])=>{a[x].add(y);a[y].add(x);});return a;}
+function nbrs(adj,n){return [...adj[n]].sort((a,b)=>nk(a)<nk(b)?-1:1);}
+
+// ─── Simulate: produces frames ───────────────────────────────────────────────
+function simulate(topo, algo, origin, resource, ttl, seed){
+  const adj = buildAdj(topo);
+  const informed = algo.startsWith('informed_');
+  const cache = {};
+  Object.keys(topo.resources).forEach(n=>cache[n]={});
+
+  // seeded LCG RNG — matches Python random.Random behaviour closely enough
+  let s = (seed === null ? Math.floor(Math.random()*999999) : seed) >>> 0;
+  function rng(arr){s=(Math.imul(1664525,s)+1013904223)>>>0;return arr[s%arr.length];}
+
+  const frames = [];
+  const foundPaths = [];
+
+  function lookup(node,res){
+    if((topo.resources[node]||[]).includes(res)) return {owner:node,via:'resource'};
+    if(informed && cache[node][res]) return {owner:cache[node][res],via:'cache'};
+    return null;
+  }
+  function updateCache(path,res,owner){path.forEach(n=>{cache[n][res]=owner;});}
+  function snap(){return JSON.parse(JSON.stringify(cache));}
+  function push(f){frames.push({...f,cacheSnap:snap()});}
+
+  let cacheHit=false, totalMessages=0;
+  const nodesInvolved=new Set([origin]);
+  let finalPath=[], found=false, owner=null, responder=null, foundVia=null;
+  // fullWalkPath = every hop in order, including revisits (random walk) or
+  //                every message sent in order (flooding)
+  const fullWalkPath=[origin];
+
+  push({type:'init',origin,resource,ttl,algo,
+        active:[origin],visitedSet:[origin],currentEdge:null,
+        traversedPath:[origin],frontierTTL:{[origin]:ttl},
+        queryMessages:0,responseMessages:0});
+
+  if(algo==='flooding'||algo==='informed_flooding'){
+    const parent={[origin]:null};
+    let frontier=[origin];
+    const visited=new Set([origin]);
+    let qMessages=0;
+
+    for(let depth=0;depth<=ttl;depth++){
+      // ── check entire frontier for the resource ──
+      let match=null;
+      for(const node of frontier){
+        const m=lookup(node,resource);
+        if(m){
+          if(!match||nk(node)<nk(match.node)) match={node,...m};
+        }
+      }
+      if(match){
+        found=true; owner=match.owner; responder=match.node; foundVia=match.via;
+        cacheHit=(match.via==='cache');
+        // reconstruct shortest path origin→responder
+        const path=[];let c=match.node;while(c!==null){path.unshift(c);c=parent[c];}
+        finalPath=path;
+        foundPaths.push([...path]);
+        const rMessages=path.length-1;
+        updateCache(path,resource,owner);
+        totalMessages=qMessages+rMessages;
+        push({type:'found',active:[...visited],visitedSet:[...visited],
+              traversedPath:[...fullWalkPath],currentEdge:null,
+              responder:match.node,owner,via:match.via,path,
+              depth,ttlLeft:ttl-depth,frontierTTL:{},
+              queryMessages:qMessages,responseMessages:rMessages});
+        break;
+      }
+      if(depth===ttl){
+        totalMessages=qMessages;
+        push({type:'ttl_exhausted',active:[...frontier],visitedSet:[...visited],
+              traversedPath:[...fullWalkPath],currentEdge:null,
+              depth,ttlLeft:0,frontierTTL:{},
+              queryMessages:qMessages,responseMessages:0});
+        break;
+      }
+
+      // ── expand: send query to each neighbour except sender ──
+      const nextFrontier=[];
+      for(const cur of [...frontier].sort((a,b)=>nk(a)<nk(b)?-1:1)){
+        const prev=parent[cur];
+        for(const nb of nbrs(adj,cur)){
+          if(nb===prev) continue;          // don't send back to who sent it
+          qMessages++;
+          nodesInvolved.add(nb);
+          fullWalkPath.push(nb);           // record every message sent
+          if(!visited.has(nb)){
+            visited.add(nb); parent[nb]=cur; nextFrontier.push(nb);
+          }
+          // one frame per message so animation shows each hop
+          push({type:'expand_edge',from:cur,to:nb,
+                active:[...visited],visitedSet:[...visited],
+                traversedPath:[...fullWalkPath],currentEdge:[cur,nb],
+                depth,ttlLeft:ttl-depth-1,
+                frontierTTL:{[nb]:ttl-depth-1},
+                frontier:[...frontier],
+                queryMessages:qMessages,responseMessages:0});
+        }
+      }
+      frontier=nextFrontier;
+      if(!frontier.length){
+        totalMessages=qMessages;
+        push({type:'no_frontier',active:[],visitedSet:[...visited],
+              traversedPath:[...fullWalkPath],currentEdge:null,
+              depth,ttlLeft:0,frontierTTL:{},
+              queryMessages:qMessages,responseMessages:0});
+        break;
+      }
+    }
+
+  } else {
+    // ── random_walk / informed_random_walk ──
+    // walkPath keeps the full sequence including revisits
+    let cur=origin;
+    const walkPath=[origin];
+    let qMessages=0;
+
+    for(let depth=0;depth<=ttl;depth++){
+      const m=lookup(cur,resource);
+      if(m){
+        found=true; owner=m.owner; responder=cur; foundVia=m.via;
+        cacheHit=(m.via==='cache');
+        finalPath=[...walkPath];
+        foundPaths.push([...walkPath]);
+        const rMessages=walkPath.length-1;
+        updateCache(walkPath,resource,owner);
+        totalMessages=qMessages+rMessages;
+        push({type:'found',active:[...new Set(walkPath)],visitedSet:[...new Set(walkPath)],
+              traversedPath:[...walkPath],currentEdge:null,
+              responder:cur,owner,via:m.via,path:[...walkPath],
+              depth,ttlLeft:ttl-depth,frontierTTL:{},
+              queryMessages:qMessages,responseMessages:rMessages});
+        break;
+      }
+      if(depth===ttl){
+        totalMessages=qMessages;
+        push({type:'ttl_exhausted',active:[...new Set(walkPath)],visitedSet:[...new Set(walkPath)],
+              traversedPath:[...walkPath],currentEdge:null,
+              depth,ttlLeft:0,frontierTTL:{},
+              queryMessages:qMessages,responseMessages:0});
+        break;
+      }
+      const nbs2=nbrs(adj,cur);
+      const next=rng(nbs2);
+      qMessages++;
+      nodesInvolved.add(next);
+      walkPath.push(next);           // append even if revisiting — that IS the walk
+      fullWalkPath.push(next);
+      push({type:'walk',from:cur,to:next,
+            active:[...new Set(walkPath)],visitedSet:[...new Set(walkPath)],
+            traversedPath:[...walkPath],currentEdge:[cur,next],
+            depth,ttlLeft:ttl-depth-1,frontierTTL:{[next]:ttl-depth-1},
+            queryMessages:qMessages,responseMessages:0});
+      cur=next;
+    }
+    if(!found) finalPath=[...fullWalkPath];
+  }
+
+  return {frames, found, owner, responder, foundVia, cacheHit,
+          totalMessages,
+          nodesInvolved:[...nodesInvolved].sort((a,b)=>nk(a)<nk(b)?-1:1),
+          finalPath, foundPaths, fullWalkPath:[...fullWalkPath], usedSeed:s};
+}
+
+// ─── SVG ─────────────────────────────────────────────────────────────────────
+const NS='http://www.w3.org/2000/svg';
+let pos={};
+function mk(tag,a){const e=document.createElementNS(NS,tag);Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));return e;}
+
+// Fixed positions extracted from the reference topology image (500×420 viewport)
+const FIXED_POS = {
+  ring: null,   // ring uses circular layout
+  circ3: null,  // circ3 uses circular layout
+  circ4: {      // matches the reference image layout exactly
+    n1:  {x:320, y: 38},
+    n2:  {x:400, y: 90},
+    n3:  {x: 62, y: 42},
+    n4:  {x:400, y:175},
+    n5:  {x:140, y:118},
+    n6:  {x:175, y:210},
+    n7:  {x:248, y:278},
+    n8:  {x:390, y:260},
+    n9:  {x:468, y:340},
+    n10: {x:400, y:390},
+    n11: {x:280, y:375},
+    n12: {x:200, y:330},
+  }
+};
+
+function buildPos(topo){
+  const topoKey = document.getElementById('selTopo').value;
+  const fixed = FIXED_POS[topoKey];
+  const nodes=Object.keys(topo.resources).sort((a,b)=>nk(a)<nk(b)?-1:1);
+  pos={};
+  if(fixed){
+    nodes.forEach(nd=>{ pos[nd] = fixed[nd] || {x:250,y:210}; });
+  } else {
+    const n=nodes.length,cx=250,cy=205,r=170;
+    nodes.forEach((nd,i)=>{const a=-Math.PI/2+i*(2*Math.PI/n);pos[nd]={x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)};});
+  }
+}
+
+function drawFrame(topo,frame){
+  const svg=document.getElementById('svg-graph');
+  svg.innerHTML='';
+  const activeSet=new Set(frame.active||[]);
+  const pathArr=frame.path||frame.traversedPath||[];
+  const curEdge=frame.currentEdge;
+  const ftl=frame.frontierTTL||{};
+
+  // path edges set
+  const pathEdges=new Set();
+  for(let i=0;i<pathArr.length-1;i++) pathEdges.add([pathArr[i],pathArr[i+1]].sort().join('|'));
+
+  // draw edges
+  const drawn=new Set();
+  topo.edges.forEach(([a,b])=>{
+    const key=[a,b].sort().join('|');
+    if(drawn.has(key))return;drawn.add(key);
+    const isPath=pathEdges.has(key);
+    const isCur=curEdge&&[curEdge[0],curEdge[1]].sort().join('|')===key;
+    const {x:x1,y:y1}=pos[a],{x:x2,y:y2}=pos[b];
+    const line=mk('line',{x1,y1,x2,y2,
+      stroke:isCur?'#ffa657':isPath?'#3fb950':'#30363d',
+      'stroke-width':isCur?3:isPath?2.5:1.2,
+      opacity:isCur||isPath?1:0.5});
+    svg.appendChild(line);
+    // arrow on current edge
+    if(isCur){
+      const mx=(x1+x2)/2,my=(y1+y2)/2;
+      const ang=Math.atan2(y2-y1,x2-x1);
+      const arr=mk('polygon',{
+        points:`${mx+8*Math.cos(ang)},${my+8*Math.sin(ang)} ${mx-6*Math.cos(ang)+5*Math.sin(ang)},${my-6*Math.sin(ang)-5*Math.cos(ang)} ${mx-6*Math.cos(ang)-5*Math.sin(ang)},${my-6*Math.sin(ang)+5*Math.cos(ang)}`,
+        fill:'#ffa657'});
+      svg.appendChild(arr);
+    }
+  });
+
+  // draw nodes
+  Object.keys(topo.resources).sort((a,b)=>nk(a)<nk(b)?-1:1).forEach(nd=>{
+    const {x,y}=pos[nd];
+    const res=topo.resources[nd]||[];
+    const inPath=pathArr.includes(nd);
+    const isOrigin=nd===frame.origin;
+    const isFound=frame.type==='found'&&nd===frame.responder;
+    const isCurNode=curEdge&&curEdge[1]===nd;
+
+    let fill='#161b22',stroke='#30363d',sw=1.5,glow='';
+    if(isFound){fill='#0f5132';stroke='#3fb950';sw=3;}
+    else if(isCurNode){fill='#3d1f00';stroke='#ffa657';sw=2.5;}
+    else if(inPath&&!isOrigin){fill='#0d2a4a';stroke='#58a6ff';sw=2;}
+    else if(isOrigin){fill='#1a0a3d';stroke='#d2a8ff';sw=2.5;}
+    else if(activeSet.has(nd)){fill='#1c2128';stroke='#484f58';sw=1.5;}
+
+    const g=mk('g',{});
+    g.appendChild(mk('circle',{cx:x,cy:y,r:19,fill,stroke,'stroke-width':sw}));
+
+    // TTL badge
+    if(ftl[nd]!==undefined){
+      g.appendChild(mk('circle',{cx:x+14,cy:y-14,r:9,fill:'#ffa657',stroke:'#0d1117','stroke-width':1.5}));
+      const tb=mk('text',{x:x+14,y:y-14,'text-anchor':'middle','dominant-baseline':'central','font-size':9,'font-weight':'bold',fill:'#0d1117','font-family':'monospace'});
+      tb.textContent=ftl[nd];
+      g.appendChild(tb);
+    }
+
+    const lbl=mk('text',{x,y,'text-anchor':'middle','dominant-baseline':'central','font-size':10,'font-weight':'bold',fill:'#c9d1d9','font-family':'Segoe UI,sans-serif'});
+    lbl.textContent=nd;
+    g.appendChild(lbl);
+
+    if(res.length){
+      const rl=mk('text',{x,y:y+29,'text-anchor':'middle','font-size':8,fill:'#6e7681','font-family':'monospace'});
+      rl.textContent=res.join(',');
+      g.appendChild(rl);
+    }
+    if(isFound){
+      const fl=mk('text',{x,y:y-32,'text-anchor':'middle','font-size':10,'font-weight':'bold',fill:'#3fb950'});
+      fl.textContent='✓ '+frame.resource;
+      g.appendChild(fl);
+    }
+    svg.appendChild(g);
+  });
+
+  // legend
+  const leg=[
+    {col:'#d2a8ff',txt:'Origem'},
+    {col:'#58a6ff',txt:'Caminho percorrido'},
+    {col:'#ffa657',txt:'Mensagem enviada'},
+    {col:'#3fb950',txt:'Encontrado'},
+  ];
+  let lx=10;
+  leg.forEach(({col,txt})=>{
+    const g=mk('g',{});
+    g.appendChild(mk('circle',{cx:lx+6,cy:408,r:5,fill:col}));
+    const t=mk('text',{x:lx+14,y:412,'font-size':9,fill:'#8b949e','font-family':'Segoe UI,sans-serif'});
+    t.textContent=txt;
+    g.appendChild(t);
+    svg.appendChild(g);
+    lx+=txt.length*6+22;
+  });
+}
+
+// ─── Report ───────────────────────────────────────────────────────────────────
+function buildReport(topo, algo, origin, resource, ttl, seed, result){
+  const topoName={ring:'Anel (grau 2)',circ3:'Circulante (grau 3)',circ4:'Circulante (grau 4)'}[document.getElementById('selTopo').value];
+  const seedStr=seed!==null?seed:'aleatório';
+  const status=result.found?'<span class="t-ok">ENCONTRADO</span>':'<span class="t-fail">NÃO ENCONTRADO</span>';
+  const cacheStr=result.cacheHit?'<span class="t-cache-hit">sim (cache hit!)</span>':'<span class="t-cache-miss">não</span>';
+
+  // caminho percorrido = full sequence with revisits
+  const walkStr=result.fullWalkPath.length?result.fullWalkPath.join(' -> '):'—';
+
+  // caminho principal (shortest, origin→owner)
+  const mainPath=result.finalPath.length
+    ? `<span class="t-path">${result.finalPath.join(' -> ')}</span>`
+    : '<span class="t-cache-miss">—</span>';
+
+  // caminhos encontrados numerados
+  let pathsHtml='';
+  if(result.foundPaths.length){
+    result.foundPaths.forEach((p,i)=>{
+      pathsHtml+=`<span class="t-label">${i+1}. </span><span class="t-path">${p.join(' -> ')}</span><br>`;
+    });
+  } else {
+    pathsHtml='<span class="t-cache-miss">Nenhum</span><br>';
+  }
+
+  // last frame for message breakdown
+  const lastF=result.frames[result.frames.length-1]||{};
+  const qMsg=lastF.queryMessages??0;
+  const rMsg=lastF.responseMessages??0;
+
+  return `
+<span class="t-sep">══════════════════════════════</span><br>
+<span class="t-title">Busca em Rede P2P</span><br>
+<span class="t-sep">══════════════════════════════</span><br>
+<br>
+<span class="t-label">Topologia:      </span><span class="t-value">${topoName}</span><br>
+<span class="t-label">Nó inicial:     </span><span class="t-value">${origin}</span><br>
+<span class="t-label">Recurso buscado:</span><span class="t-value"> ${resource}</span><br>
+<span class="t-label">Algoritmo:      </span><span class="t-value">${algo}</span><br>
+<span class="t-label">TTL:            </span><span class="t-value">${ttl}</span><br>
+<span class="t-label">Seed:           </span><span class="t-value">${seedStr}</span><br>
+<br>
+<span class="t-sep">──────────────────────────────</span><br>
+<span class="t-label">Resultado:      </span>${status}<br>
+${result.found?`<span class="t-label">Recurso em:     </span><span class="t-ok">${result.owner}</span><br>`:''}
+${result.found&&result.foundVia==='cache'?`<span class="t-label">Via:            </span><span class="t-cache-hit">cache</span><br>`:''}
+<br>
+<span class="t-label">Caminho principal:</span><br>
+${mainPath}<br>
+<br>
+<span class="t-label">Caminhos encontrados:</span><br>
+${pathsHtml}<span class="t-label">Total de caminhos: ${result.foundPaths.length}</span><br>
+<br>
+<span class="t-sep">──────────────────────────────</span><br>
+<span class="t-label">Caminho percorrido:</span><br>
+<span class="t-step">${walkStr}</span><br>
+<br>
+<span class="t-label">Mensagens trocadas: </span><span class="t-msg">${result.totalMessages}</span><br>
+<span class="t-label">  consulta=${qMsg}  resposta=${rMsg}</span><br>
+<span class="t-label">Nós envolvidos:     </span><span class="t-msg">${result.nodesInvolved.length}</span><br>
+<span class="t-label">  ${result.nodesInvolved.join(', ')}</span><br>
+<span class="t-label">Cache hit:          </span>${cacheStr}<br>
+<span class="t-sep">══════════════════════════════</span><br>`;
+}
+
+// ─── Log helpers ──────────────────────────────────────────────────────────────
+function log(html){const b=document.getElementById('logBox');b.innerHTML+=html;b.scrollTop=b.scrollHeight;}
+function clearLog(){document.getElementById('logBox').innerHTML='';}
+function setStatus(t){document.getElementById('statusBox').innerHTML=t;}
+
+function updateTTLBar(left,max){
+  const pct=max>0?Math.round(left/max*100):0;
+  const fill=document.getElementById('ttlFill');
+  fill.style.width=pct+'%';
+  fill.style.background=pct>60?'#1f6feb':pct>30?'#d29922':'#da3633';
+  document.getElementById('ttlLabel').textContent=left+' / '+max;
+}
+
+function describeFrame(f){
+  if(f.type==='init') return `<p style="color:#d2a8ff">🚀 Início: <b>${f.origin}</b> busca "<b>${f.resource}</b>" TTL=${f.ttl} [${f.algo}]</p>`;
+  if(f.type==='expand_edge') return `<p style="color:#ffa657">📨 Passo ${f.depth+1}: <b>${f.from}</b> → <b>${f.to}</b> | TTL restante: ${f.ttlLeft}</p>`;
+  if(f.type==='walk') return `<p style="color:#ffa657">👣 Passo ${f.depth+1}: <b>${f.from}</b> → <b>${f.to}</b> | TTL restante: ${f.ttlLeft}</p>`;
+  if(f.type==='found'){
+    const via=f.via==='cache'?' <span style="color:#a5d6ff">(cache hit!)</span>':'';
+    return `<p style="color:#3fb950;font-weight:bold">✅ ENCONTRADO! "${f.resource}" em <b>${f.owner}</b> via ${f.responder}${via}</p><p style="color:#58a6ff">↩ Caminho: ${(f.path||[]).join(' → ')}</p>`;
+  }
+  if(f.type==='ttl_exhausted') return `<p style="color:#f85149;font-weight:bold">❌ TTL esgotado após ${f.depth} saltos — recurso não encontrado</p>`;
+  if(f.type==='no_frontier') return `<p style="color:#f85149">❌ Sem mais nós para visitar</p>`;
+  return '';
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let frames=[],frameIdx=0,simResult=null,currentTopo=null,autoTimer=null;
+
+function getTopo(){return TOPOS[document.getElementById('selTopo').value];}
+function getAlgo(){return document.getElementById('selAlgo').value;}
+function getOrigin(){return document.getElementById('selOrigin').value;}
+function getResource(){return document.getElementById('selResource').value;}
+function getTTL(){return parseInt(document.getElementById('inpTTL').value)||6;}
+function getSeed(){const v=document.getElementById('inpSeed').value.trim();return v===''?null:parseInt(v);}
+
+function populateSelects(){
+  const topo=getTopo();
+  const nodes=Object.keys(topo.resources).sort((a,b)=>nk(a)<nk(b)?-1:1);
+  const allRes=[...new Set(Object.values(topo.resources).flat())].sort();
+  const so=document.getElementById('selOrigin'),sr=document.getElementById('selResource');
+  so.innerHTML=nodes.map(n=>`<option value="${n}">${n}</option>`).join('');
+  sr.innerHTML=allRes.map(r=>`<option value="${r}">${r}</option>`).join('');
+  sr.value='r7';
+}
+
+function renderFrame(f){
+  drawFrame(currentTopo,{...f,origin:getOrigin(),resource:getResource()});
+  updateTTLBar(f.ttlLeft??getTTL(),getTTL());
+  log(describeFrame(f));
+  if(f.type==='found') setStatus('✅ <b style="color:#3fb950">Encontrado!</b>');
+  else if(f.type==='ttl_exhausted'||f.type==='no_frontier') setStatus('❌ <b style="color:#f85149">Não encontrado</b>');
+  else setStatus(`Passo ${frameIdx} de ${frames.length} | TTL: ${f.ttlLeft??getTTL()}`);
+}
+
+function doReset(){
+  if(autoTimer){clearTimeout(autoTimer);autoTimer=null;}
+  frames=[];frameIdx=0;simResult=null;
+  clearLog();
+  setStatus('Configure e execute uma busca.');
+  updateTTLBar(getTTL(),getTTL());
+  document.getElementById('report').innerHTML='<span class="t-sep">══════════════════════════════</span><br><span class="t-title">Busca em Rede P2P</span><br><span class="t-sep">══════════════════════════════</span><br><br><span class="t-label">Configure e execute uma busca<br>para ver o relatório aqui.</span><br>';
+  currentTopo=getTopo();
+  buildPos(currentTopo);
+  drawFrame(currentTopo,{type:'idle',active:[],traversedPath:[],currentEdge:null,origin:getOrigin(),resource:getResource(),ttlLeft:getTTL(),frontierTTL:{}});
+}
+
+function runSim(){
+  currentTopo=getTopo();
+  buildPos(currentTopo);
+  const algo=getAlgo(),origin=getOrigin(),resource=getResource(),ttl=getTTL(),seed=getSeed();
+  const result=simulate(currentTopo,algo,origin,resource,ttl,seed);
+  simResult=result;frames=result.frames;frameIdx=0;
+  clearLog();
+  document.getElementById('report').innerHTML=buildReport(currentTopo,algo,origin,resource,ttl,seed,result);
+  return result;
+}
+
+document.getElementById('btnRun').addEventListener('click',()=>{
+  if(autoTimer){clearTimeout(autoTimer);autoTimer=null;}
+  runSim();
+  function step(){
+    if(frameIdx>=frames.length)return;
+    renderFrame(frames[frameIdx++]);
+    if(frameIdx<frames.length) autoTimer=setTimeout(step,700);
+  }
+  step();
+});
+
+document.getElementById('btnStep').addEventListener('click',()=>{
+  if(!frames.length||frameIdx===0) runSim();
+  if(frameIdx<frames.length) renderFrame(frames[frameIdx++]);
+  else setStatus('Simulação concluída. Clique ↺ para nova busca.');
+});
+
+document.getElementById('btnReset').addEventListener('click',doReset);
+document.getElementById('selTopo').addEventListener('change',()=>{populateSelects();doReset();});
+document.getElementById('inpTTL').addEventListener('change',()=>updateTTLBar(getTTL(),getTTL()));
+
+populateSelects();
+currentTopo=getTopo();
+buildPos(currentTopo);
+doReset();
+</script>
+</body>
+</html>

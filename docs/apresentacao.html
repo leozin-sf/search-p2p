@@ -214,9 +214,9 @@
       </thead>
       <tbody>
         <tr><td>flooding</td><td>Todos os vizinhos, com supressao de reenvio</td><td>Nao</td></tr>
-        <tr><td>informed flooding</td><td>Flooding ate um no conhecer a localizacao</td><td>Sim</td></tr>
-        <tr><td>random walk</td><td>Um vizinho aleatorio por salto</td><td>Nao</td></tr>
-        <tr><td>informed random walk</td><td>Passeio ate recurso ou entrada em cache</td><td>Sim</td></tr>
+        <tr><td>informed_flooding</td><td>Flooding ate um no conhecer a localizacao</td><td>Sim</td></tr>
+        <tr><td>random_walk</td><td>Um vizinho aleatorio por salto</td><td>Nao</td></tr>
+        <tr><td>informed_random_walk</td><td>Passeio ate recurso ou entrada em cache</td><td>Sim</td></tr>
       </tbody>
     </table>
     <p class="small">
@@ -284,14 +284,11 @@
 
   <section class="slide">
     <h2>Demonstracao ao vivo</h2>
-    <pre>python3 -m p2p_search simulate examples/ring_12.json \
-  --node-id n1 --resource-id r7 --ttl 6 --algorithm "flooding"
-
-python3 -m p2p_search shell examples/ring_12.json --seed 2026
+    <pre>python3 -m p2p_search shell examples/ring_12.json --seed 2026
 
 search n1 r7 6 flooding
 cache n1
-search n1 r7 6 informed flooding</pre>
+search n1 r7 6 informed_flooding</pre>
     <div class="columns">
       <div class="card">
         <h3>Primeira busca</h3>

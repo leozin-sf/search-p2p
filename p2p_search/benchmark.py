@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 from .network import P2PNetwork
-from .search import ALGORITHMS, SearchEngine, normalize_algorithm
+from .search import ALGORITHMS, SearchEngine
 
 
 @dataclass(frozen=True)
@@ -98,12 +98,16 @@ def run_benchmark(
         raise ValueError("runs deve ser maior que zero.")
     if not queries:
         raise ValueError("E necessario informar ao menos uma consulta.")
-    normalized_algorithms = tuple(
-        normalize_algorithm(algorithm) for algorithm in algorithms
-    )
+    invalid_algorithms = [
+        algorithm for algorithm in algorithms if algorithm not in ALGORITHMS
+    ]
+    if invalid_algorithms:
+        raise ValueError(
+            "Algoritmo(s) invalido(s): " + ", ".join(invalid_algorithms)
+        )
 
     summaries: list[BenchmarkSummary] = []
-    for algorithm in normalized_algorithms:
+    for algorithm in algorithms:
         messages: list[int] = []
         nodes: list[int] = []
         successes = 0

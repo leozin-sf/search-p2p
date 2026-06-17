@@ -50,17 +50,6 @@ class BenchmarkTests(unittest.TestCase):
         )
         self.assertEqual(summaries[0].success_rate, summaries[1].success_rate)
 
-    def test_benchmark_accepts_readable_algorithm_names(self) -> None:
-        summaries = run_benchmark(
-            chain_network(),
-            "chain",
-            [Query("n1", "r3", 2)],
-            algorithms=["random walk"],
-            runs=1,
-            seed=0,
-        )
-        self.assertEqual(summaries[0].algorithm, "random_walk")
-
 
 if __name__ == "__main__":
     unittest.main()
